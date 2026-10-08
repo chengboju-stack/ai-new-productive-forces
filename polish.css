@@ -1,0 +1,261 @@
+/* ==========================================================================
+   NEXUS · polish.css
+   视觉与可读性增强层。在 story.css 之后加载，只做增量覆盖：
+     · 不改变章节路由与滚动方式（无滚动劫持 / 无滚动吸附）
+     · 不移除任何数据口径、来源、图片许可或“模拟 / 预测”标签
+     · 所有动效都受 prefers-reduced-motion 保护
+   ========================================================================== */
+
+/* ---------- 1. 本地字体（SIL OFL 1.1，随包分发，不依赖 CDN） ---------- */
+@font-face{font-family:'Manrope';font-style:normal;font-weight:400;font-display:swap;src:url('assets/fonts/manrope-400.woff2') format('woff2')}
+@font-face{font-family:'Manrope';font-style:normal;font-weight:600;font-display:swap;src:url('assets/fonts/manrope-600.woff2') format('woff2')}
+@font-face{font-family:'Manrope';font-style:normal;font-weight:700;font-display:swap;src:url('assets/fonts/manrope-700.woff2') format('woff2')}
+@font-face{font-family:'DM Mono';font-style:normal;font-weight:400;font-display:swap;src:url('assets/fonts/dmmono-400.woff2') format('woff2')}
+@font-face{font-family:'DM Mono';font-style:normal;font-weight:500;font-display:swap;src:url('assets/fonts/dmmono-500.woff2') format('woff2')}
+
+/* ---------- 2. 全局氛围：深色底不再是一块死黑 ---------- */
+body{
+  background-color:var(--bg);
+  background-image:
+    /* 细微颗粒，避免大面积纯色的塑料感 */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E"),
+    /* 仪器网格 */
+    linear-gradient(#8fd8d90d 1px,transparent 1px),
+    linear-gradient(90deg,#8fd8d90d 1px,transparent 1px),
+    /* 极光 */
+    radial-gradient(1150px 720px at 10% -12%,#10414a7a 0%,transparent 62%),
+    radial-gradient(940px 620px at 94% 0%,#27205e5c 0%,transparent 60%),
+    radial-gradient(1050px 780px at 50% 112%,#0d3a3475 0%,transparent 58%);
+  background-size:140px 140px,76px 76px,76px 76px,auto,auto,auto;
+  background-repeat:repeat,repeat,repeat,no-repeat,no-repeat,no-repeat;
+  background-attachment:fixed;
+}
+@media(prefers-reduced-motion:no-preference){
+  body{animation:polish-drift 46s ease-in-out infinite alternate}
+  @keyframes polish-drift{
+    from{background-position:0 0,0 0,0 0,0% 0%,100% 0%,50% 100%}
+    to{background-position:0 0,22px 26px,-18px 14px,4% 6%,96% 8%,54% 94%}
+  }
+}
+/* 顶栏更实，滚动时始终压住背景 */
+.topbar{background:linear-gradient(180deg,#08131ce8,#071018d9);border-bottom-color:#ffffff14}
+
+/* ---------- 3. 顶部导航：当前章高亮（原先的选择器与 JS 不匹配，从未生效） ---------- */
+.main-nav{gap:clamp(4px,0.55vw,9px)}
+.main-nav a{
+  position:relative;
+  font-size:clamp(11px,.92vw,13.5px);
+  font-weight:500;
+  letter-spacing:.1px;
+  color:#a3b7c4;
+  padding:7px 11px;
+  border:1px solid transparent;
+  border-radius:999px;
+  transition:color .18s,background .18s,border-color .18s,box-shadow .18s,transform .18s;
+}
+.main-nav a:hover{color:#eef7f9;background:#ffffff0f;border-color:#ffffff1f}
+.main-nav a:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+/* 当前章：明确的“框 + 高亮 + 光晕”，一眼可辨 */
+.main-nav a.active,
+.main-nav a[aria-current=page],
+.main-nav a[aria-current=location]{
+  color:#061611;
+  font-weight:700;
+  background:linear-gradient(135deg,#8cfad7,#5fe3b6 62%,#57d9c9);
+  border-color:#a9ffe4;
+  box-shadow:0 0 0 1px #62f0c140,0 6px 20px -8px #62f0c1cc,0 0 26px -6px #62f0c166;
+}
+.main-nav a.active:hover{transform:translateY(-1px);box-shadow:0 0 0 1px #62f0c166,0 10px 26px -8px #62f0c1e6,0 0 30px -4px #62f0c180}
+@media(max-width:1100px){.main-nav a{font-size:12px;padding:6px 9px}}
+/* 中窄屏：仍显示真实标签（原先 <=560px 用 :after 塞了错位假标签，且第 5–9 项被隐藏） */
+@media(max-width:760px){
+  .main-nav{
+    flex:1;min-width:0;justify-content:flex-start;
+    gap:6px;overflow-x:auto;overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;
+    padding:3px 2px;
+  }
+  .main-nav::-webkit-scrollbar{display:none}
+  .main-nav a{font-size:11.5px;padding:6px 9px;flex:none}
+}
+@media(max-width:560px){
+  /* story.css 用 .main-nav a:nth-child(n):after 塞了错位的假标签（第 5–9 项还会被隐藏），
+     这里明确压掉，改回显示真实标签。 */
+  .main-nav a{font-size:11px!important;padding:6px 8px}
+  .main-nav a:after{content:none!important}
+  .main-nav a:nth-child(n):after{content:none!important}
+  .route-now{padding:0 9px}
+}
+/* 顶部“当前在哪一章”芯片：滚到章节深处也始终知道位置 */
+.route-now{
+  display:inline-flex;align-items:center;gap:7px;
+  flex:none;height:30px;padding:0 12px 0 10px;
+  border:1px solid #35515e;border-radius:999px;
+  background:#0c2130cc;color:#cfe6e4;
+  font:500 11.5px var(--mono);letter-spacing:.3px;
+  transition:border-color .2s,box-shadow .2s;
+}
+.route-now b{color:var(--mint);font-weight:500}
+.route-now i{font-style:normal;color:#dceceb}
+.route-now.on{border-color:#62f0c199;box-shadow:0 0 18px -6px #62f0c1aa}
+.route-now i:empty,.route-now b:empty{display:none}
+@media(max-width:760px){.route-now{height:28px;padding:0 10px;font-size:10.5px}.route-now i{display:none}}
+
+/* ---------- 4. 字号与对比度整体上调 ---------- */
+.wordmark small{font-size:9.5px;letter-spacing:.6px;color:#93a7b4}
+.eyebrow{font-size:11.5px;letter-spacing:1.4px;color:#8fe3c6}
+.section-intro,{font-size:16px;line-height:1.85;color:#a7b9c4}
+.section-intro{font-size:16px;line-height:1.85;color:#a7b9c4;max-width:62ch}
+p,.case-copy,.node-detail p,.source-chip,.map-grid a small{text-wrap:pretty}
+.node-detail p{font-size:14.5px;line-height:1.8;color:#b3c4cd}
+.principle-strip b{font-size:12.5px}
+.act-divider small{font-size:13.5px;color:#a9c4c6}
+.act-divider .act-number,.act-divider .act-index{font-size:12px;letter-spacing:1.6px}
+.source-chip{font-size:12.5px}
+.map-grid>div>span{font-size:11px;color:#8fb3ab}
+.map-grid a{font-size:12.5px;color:#96b8b4}
+.map-grid a b{font-size:16.5px}
+.map-grid a small{font-size:11px}
+.map-foot{font-size:10px;letter-spacing:.8px}
+.case-overline,.visual-tag,.reactor-label,.orbit-label{font-size:11px;letter-spacing:1.2px}
+.adoption-label b{font-size:13.5px}
+.adoption-label small{font-size:10.5px}
+.meter-value{font-size:22px}
+.trend-year,.source-no{font-size:12px}
+.route-chrome{font-size:12.5px}
+.chapter-next small{font-size:10.5px}
+.chapter-next b{font-size:19px}
+footer.footer p{font-size:12.5px;color:#93a4b0}
+
+/* ---------- 5. 章节识别带：进入哪一章要一眼看出来 ---------- */
+.route-chrome{
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding-bottom:14px;margin-bottom:6px;
+  border-bottom:1px solid #2b4a58;
+}
+.route-code{
+  color:#061611;font-weight:700;letter-spacing:.6px;
+  background:linear-gradient(135deg,#8cfad7,#5fe3b6);
+  padding:5px 11px;border-radius:999px;
+}
+.route-group{color:#8fe3c6;letter-spacing:1.4px}
+.route-page-title{color:#cfe0e6;font-weight:600;position:relative;padding-left:14px}
+.route-page-title:before{content:'';position:absolute;left:0;top:50%;width:6px;height:6px;margin-top:-3px;border-radius:50%;background:var(--mint);box-shadow:0 0 10px var(--mint)}
+/* 章节大标题：渐变字 + 更大字重层次 */
+.section-heading h2,.scales h2,.evidence h2,.industry h2,.energy h2,.lab h2,.closing h2{
+  letter-spacing:-.03em;
+  background:linear-gradient(96deg,#ffffff 8%,#d9fff1 46%,#8ef0d0 78%,#7fd8ff);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero h1,.closing h2{
+  background:linear-gradient(96deg,#ffffff 6%,#d6fff0 44%,#8ef0d0 76%,#a9a4ff);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero h1 em,h1 em,h2 em{background:none;-webkit-text-fill-color:currentColor}
+.act-divider h2{letter-spacing:-.05em}
+
+/* ---------- 6. 层次与材质：面板浮起来，而不只是描一条灰线 ---------- */
+.engine-node,.hero-node,.gate-switch,.scale-tab,.case-tab,.frontier-tab,.source-filter-button,
+.node-detail,.principle-strip,.adoption-row,.index-row,.workflow-step,.panel-topline,.reactor-label{
+  transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s,border-color .22s,background .22s;
+}
+.engine-node,.hero-node{
+  background:linear-gradient(160deg,#12293a,#0c1e2b);
+  border:1px solid #2c4c5c;
+  box-shadow:0 10px 30px -18px #000c,inset 0 1px 0 #ffffff14;
+}
+.engine-node:hover,.hero-node:hover{
+  transform:translateY(-4px);
+  border-color:#5fe3b6aa;
+  box-shadow:0 18px 44px -20px #000e,0 0 30px -12px #62f0c199,inset 0 1px 0 #ffffff1f;
+}
+.node-detail,.principle-strip{
+  background:linear-gradient(165deg,#10222fe6,#0b1824d9);
+  border:1px solid #26414f;
+  box-shadow:0 20px 50px -30px #000,inset 0 1px 0 #ffffff0f;
+}
+.gate-switch{
+  background:linear-gradient(160deg,#122433,#0d1c27);
+  border:1px solid #2a4655;
+}
+.gate-switch:hover{transform:translateY(-3px);border-color:#5fe3b688;box-shadow:0 14px 34px -20px #000,0 0 26px -12px #62f0c1aa}
+.gate-switch.active{
+  background:linear-gradient(160deg,#123a33,#0d2b2a);
+  border-color:#5fe3b6aa;
+  box-shadow:0 0 0 1px #62f0c133,0 0 30px -12px #62f0c1b3,inset 0 1px 0 #ffffff1a;
+}
+.scale-tab,.case-tab,.frontier-tab,.source-filter-button{
+  border:1px solid #2a4655;background:#0e1f2b;border-radius:10px 10px 0 0;
+}
+.scale-tab:hover,.case-tab:hover,.frontier-tab:hover,.source-filter-button:hover{
+  border-color:#5fe3b688;background:#12293a;transform:translateY(-2px);
+}
+.scale-tab.active,.case-tab.active,.frontier-tab.active,
+.scale-tab[aria-selected=true],.case-tab[aria-selected=true],.frontier-tab[aria-selected=true]{
+  background:linear-gradient(180deg,#123a33,#0e2a2c);
+  border-color:#5fe3b6aa;box-shadow:0 -8px 26px -14px #62f0c1cc;
+}
+/* 数据条与仪表：让量值本身发光 */
+.meter-track,.index-track{background:#0b1a24;box-shadow:inset 0 1px 3px #000a;border-radius:999px;overflow:hidden}
+.meter-fill,.index-track>span,.research-bar>span{
+  background:linear-gradient(90deg,#5fe3b6,#7fd8ff);
+  box-shadow:0 0 18px -4px #62f0c1cc;
+}
+.meter-value{color:#eafdf6;text-shadow:0 0 22px #62f0c14d;letter-spacing:-.02em}
+.act-number{text-shadow:0 0 24px currentColor}
+/* 引用块与来源条目 */
+.quote,.insight-code,.caveat,.case-source{
+  background:linear-gradient(120deg,#0f2230e6,#0b1a26d9);
+  border-left:3px solid var(--mint);
+  box-shadow:0 18px 44px -30px #000;
+}
+.source-chip:hover{border-color:#5fe3b688;box-shadow:0 0 24px -12px #62f0c1aa}
+/* 主按钮：发光 + 掠光 */
+.hero-actions .button,.button.primary,#enter-observatory,.chapter-map-link{
+  position:relative;overflow:hidden;
+}
+.hero-actions .button{box-shadow:0 10px 30px -14px #62f0c199}
+.hero-actions .button:hover{box-shadow:0 14px 38px -14px #62f0c1cc}
+@media(prefers-reduced-motion:no-preference){
+  .button:after,.start-button:after{
+    content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;
+    background:linear-gradient(100deg,transparent,#ffffff30,transparent);
+    transform:skewX(-18deg);transition:left .5s ease;
+  }
+  .button:hover:after,.start-button:hover:after{left:120%}
+}
+
+/* ---------- 7. 入场与滚动揭示（尊重减弱动态偏好） ---------- */
+@media(prefers-reduced-motion:no-preference){
+  [data-chapter].route-active>:not(.route-chrome):not(.route-end-nav){
+    animation:polish-rise .52s cubic-bezier(.2,.75,.2,1) both;
+  }
+  [data-chapter].route-active>:nth-child(2){animation-delay:.04s}
+  [data-chapter].route-active>:nth-child(3){animation-delay:.09s}
+  [data-chapter].route-active>:nth-child(4){animation-delay:.14s}
+  [data-chapter].route-active>:nth-child(5){animation-delay:.19s}
+  [data-chapter].route-active>:nth-child(6){animation-delay:.24s}
+  @keyframes polish-rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+
+  /* 数据条进入视野时扫到量值（只动 transform，不改最终宽度，也不隐藏内容） */
+  [data-chapter].route-active .meter-fill,
+  [data-chapter].route-active .index-track>span,
+  [data-chapter].route-active .research-bar>span{
+    transform-origin:left center;
+    animation:polish-bar .9s cubic-bezier(.2,.8,.2,1) both;
+  }
+  @keyframes polish-bar{from{transform:scaleX(.03)}to{transform:scaleX(1)}}
+
+  .engine-node,.hero-node{animation:polish-node-in .5s cubic-bezier(.2,.8,.2,1) both}
+  .engine-node:nth-child(2){animation-delay:.05s}
+  .engine-node:nth-child(3){animation-delay:.1s}
+  .engine-node:nth-child(4){animation-delay:.15s}
+  .engine-node:nth-child(5){animation-delay:.2s}
+  .engine-node:nth-child(6){animation-delay:.25s}
+  .engine-node:nth-child(7){animation-delay:.3s}
+  @keyframes polish-node-in{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
+}
+/* 键盘可达性统一加强 */
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{
+  outline:2px solid var(--mint);outline-offset:3px;border-radius:6px;
+}
