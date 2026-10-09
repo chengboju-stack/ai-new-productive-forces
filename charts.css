@@ -1,0 +1,153 @@
+/* ==========================================================================
+   charts.css · 数据可视化组件（主题感知）
+   站点深浅混排：scales / frontier / energy / conclusion 为浅色底，
+   其余章节为深色底。这里用 CSS 变量定义一套图表配色，并按章节切换。
+   全部图形只使用 data/metrics.csv 中已有的数值。
+   ========================================================================== */
+
+/* ── 深色主题（默认） ── */
+.chart{
+  --bar-h:15px;
+  --c-title:#d6e6ec; --c-label:#a9bcc6; --c-sub:#7f9aa3; --c-value:#e6f7f2;
+  --c-track:#0c1d27; --c-axis:#6f8f92; --c-note:#8299a2; --c-src:#5f7f86;
+  --c-border:#243f4c; --c-rowbg:#0f2130a6; --c-rowbg2:#0b1824a6; --c-rowborder:#24404e;
+  --c-fill:linear-gradient(90deg,#5fe3b6,#7fd8ff);
+  --c-fill-ref:linear-gradient(90deg,#8f8ff0,#b6a8ff);
+  --c-col:linear-gradient(180deg,#5fe3b6,#2f8f8a);
+  --c-col-ref:linear-gradient(180deg,#256177,#123e59);
+  --c-badge:#062018;
+  margin:22px 0 6px;
+}
+/* ── 浅色主题：scales / frontier 数据条 / energy / conclusion ── */
+.scales .chart,
+.frontier-charts .chart,
+.energy .chart,
+.conclusion .chart{
+  --c-title:#132a33; --c-label:#3a545d; --c-sub:#5e747c; --c-value:#0d2430;
+  --c-track:#d9e4e6; --c-axis:#7d939a; --c-note:#4f656d; --c-src:#6b8187;
+  --c-border:#c6d7d9; --c-rowbg:#ffffffcc; --c-rowbg2:#f2f7f7cc; --c-rowborder:#c6d7d9;
+  --c-fill:linear-gradient(90deg,#1c9b7f,#2f83b8);
+  --c-fill-ref:linear-gradient(90deg,#6b6bd0,#8d7fd6);
+  --c-col:linear-gradient(180deg,#2bb894,#187d8b);
+  --c-col-ref:linear-gradient(180deg,#9fc0c8,#7d9fa8);
+  --c-badge:#ffffff;
+}
+
+/* ── 图表宿主容器 ── */
+.scale-charts{margin:clamp(18px,3vw,30px) 0 0;padding-top:22px;border-top:1px solid var(--c-border,#243f4c)}
+.scale-charts .chart,.labor-chart-host .chart,.industry-ledger-host .chart,.frontier-charts .chart{margin-top:0}
+.labor-chart-host{margin:20px 0 4px;padding-top:18px;border-top:1px solid #243f4c}
+.frontier-charts{max-width:var(--max,1360px);margin:clamp(20px,3vw,34px) auto 0;
+  padding:clamp(16px,2.4vw,26px) clamp(16px,3vw,30px);border:1px solid #a9c6c8;border-radius:10px;background:#f6f9f8}
+.industry-ledger-host{max-width:var(--max,1360px);margin:clamp(20px,3vw,34px) auto 0;
+  padding:clamp(16px,2.4vw,26px) clamp(16px,3vw,30px);border:1px solid #23414f;border-radius:10px;
+  background:linear-gradient(160deg,#0e2130a6,#0a1723a6)}
+
+.chart-head{display:flex;align-items:baseline;justify-content:space-between;gap:14px;margin-bottom:14px}
+.chart-title{font:600 13px/1.5 var(--sans);color:var(--c-title)}
+.chart-unit{font:500 11px var(--mono);color:var(--c-axis);letter-spacing:.6px;white-space:nowrap}
+
+/* ── 共享纵轴刻度 ── */
+.chart-axis{display:flex;justify-content:space-between;font:10px var(--mono);color:var(--c-axis);margin:0 0 8px 0;padding-left:var(--label-w,190px)}
+.chart-axis span{transform:translateX(-50%)}
+.chart-axis span:first-child{transform:none}
+.chart-axis span:last-child{transform:translateX(-100%)}
+
+/* ── 横向条（同一刻度） ── */
+.hbar{display:grid;grid-template-columns:var(--label-w,190px) minmax(0,1fr) 62px;align-items:center;gap:12px;margin:11px 0}
+.hbar-label{font-size:12.5px;color:var(--c-label);line-height:1.45}
+.hbar-label small{display:block;color:var(--c-sub);font-size:10.5px;letter-spacing:.3px}
+.hbar-track{position:relative;height:var(--bar-h);background:var(--c-track);border-radius:999px;
+  box-shadow:inset 0 1px 2px #0000001a}
+.hbar-fill{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:var(--c-fill);
+  box-shadow:0 0 18px -6px #62f0c180;transform-origin:left center}
+.hbar-fill.ref{background:var(--c-fill-ref);box-shadow:none}
+.hbar-fill.violet{background:var(--c-fill-ref)}
+.hbar-value{font:600 13px var(--mono);color:var(--c-value);text-align:right;font-variant-numeric:tabular-nums}
+.hbar-value small{display:block;font-size:9.5px;color:var(--c-sub);font-weight:400}
+
+/* ── 纵向柱（同一刻度） ── */
+.columns{display:flex;align-items:stretch;gap:clamp(16px,5%,54px);padding:10px 4px 0;height:var(--cols-h,240px);position:relative}
+.columns:before{content:'';position:absolute;inset:auto 0 0;height:1px;background:var(--c-border)}
+.col{flex:1;max-width:130px;display:flex;flex-direction:column;align-items:center;height:100%;gap:8px;min-height:0}
+/* 柱高必须严格等于 数值/上限：给百分比一个独立基准容器，且禁止 flex 收缩 */
+.col-area{flex:1;width:100%;min-height:0;display:flex;align-items:flex-end}
+.col-bar{width:100%;flex:none;border-radius:3px 3px 0 0;background:var(--c-col);
+  transform-origin:bottom center;box-shadow:0 0 26px -8px #62f0c14d;position:relative}
+.col-bar.ref{background:var(--c-col-ref);box-shadow:none;border:1px dashed var(--c-axis)}
+.col-num{font:600 17px var(--mono);color:var(--c-value);font-variant-numeric:tabular-nums}
+.col-cap{font-size:11px;color:var(--c-label);text-align:center;line-height:1.5}
+.col-cap small{display:block;font-size:10px;color:var(--c-sub)}
+.col-delta{align-self:center;font:600 11.5px var(--mono);color:#1c9b7f;border:1px solid #1c9b7f55;
+  border-radius:999px;padding:3px 9px;white-space:nowrap}
+.scales .col-delta,.frontier-charts .col-delta{color:#187d8b;border-color:#187d8b55}
+
+/* ── 范围条（例：8–60×） ── */
+.range-row{display:grid;grid-template-columns:var(--label-w,190px) minmax(0,1fr) 84px;align-items:center;gap:12px;margin:12px 0}
+.range-track{position:relative;height:var(--bar-h);background:var(--c-track);border-radius:999px}
+.range-span{position:absolute;top:0;bottom:0;border-radius:999px;
+  background:repeating-linear-gradient(45deg,#7fd8ff44,#7fd8ff44 6px,#7fd8ff18 6px,#7fd8ff18 12px);
+  border:1px dashed #7fd8ff88}
+.range-dot{position:absolute;top:50%;width:12px;height:12px;border-radius:50%;background:#2bb894;
+  transform:translate(-50%,-50%);box-shadow:0 0 14px #2bb89499}
+.range-value{font:600 12.5px var(--mono);color:var(--c-value);text-align:right}
+
+/* ── 成对行（规模 + 同比） ── */
+.rows{display:grid;gap:12px}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 14px;align-items:center;
+  padding:12px 14px;border:1px solid var(--c-rowborder);border-radius:8px;
+  background:linear-gradient(160deg,var(--c-rowbg),var(--c-rowbg2));
+  transition:border-color .2s,transform .2s,box-shadow .2s}
+.row:hover{border-color:#2bb89488;transform:translateY(-2px);box-shadow:0 14px 32px -22px #0006}
+.row-main{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.row-name{font-size:12.5px;color:var(--c-label)}
+.row-value{font:600 19px var(--mono);color:var(--c-value);font-variant-numeric:tabular-nums}
+.row-value small{font-size:11px;color:var(--c-sub);font-weight:400}
+.row-note{grid-column:1/-1;font-size:10.5px;color:var(--c-sub)}
+.row-badge{font:600 11.5px var(--mono);color:var(--c-badge);background:linear-gradient(135deg,#5fe3b6,#2bb894);
+  border-radius:999px;padding:4px 10px;white-space:nowrap}
+.industry-ledger-host .row-badge{color:#062018}
+
+/* ── 悬停提示 ── */
+[data-tip]{cursor:help;position:relative}
+.chart-tip{position:fixed;z-index:2147482000;max-width:300px;pointer-events:none;opacity:0;
+  transform:translate(-50%,calc(-100% - 12px));transition:opacity .14s ease;
+  background:#07161ff7;border:1px solid #3d6b6a;border-radius:8px;padding:10px 12px;
+  box-shadow:0 18px 44px -20px #000;color:#dff2ee;font-size:11.5px;line-height:1.65}
+.chart-tip.show{opacity:1}
+.chart-tip b{color:#8ef0d0;font-weight:600}
+.chart-tip i{display:block;font-style:normal;color:#8ba7b1;font-size:10.5px;margin-top:5px;padding-top:5px;border-top:1px solid #1d3541}
+
+/* ── 图注与边界说明 ── */
+.chart-note{margin-top:12px;font-size:11px;line-height:1.75;color:var(--c-note);
+  border-left:2px solid var(--c-border);padding-left:11px}
+.chart-note b{color:var(--c-title);font-weight:600}
+.chart-src{margin-top:7px;font:10.5px var(--mono);color:var(--c-src)}
+
+/* ── 出现动画（受 reduced-motion 保护） ── */
+@media(prefers-reduced-motion:no-preference){
+  .chart.will-animate .hbar-fill{animation:chart-grow-x .85s cubic-bezier(.2,.8,.2,1) both}
+  .chart.will-animate .range-span,.chart.will-animate .range-dot{animation:chart-fade .7s ease both}
+  .chart.will-animate .col-bar{animation:chart-grow-y .9s cubic-bezier(.2,.8,.2,1) both}
+  .chart.will-animate .hbar,.chart.will-animate .col,.chart.will-animate .row{animation:chart-fade .5s ease both}
+  .hbar:nth-child(2),.col:nth-child(2),.rows .row:nth-child(1){animation-delay:.06s}
+  .hbar:nth-child(3),.col:nth-child(3),.rows .row:nth-child(2){animation-delay:.13s}
+  .hbar:nth-child(4),.col:nth-child(4),.rows .row:nth-child(3){animation-delay:.2s}
+  .hbar:nth-child(5),.rows .row:nth-child(4){animation-delay:.27s}
+  .rows .row:nth-child(5){animation-delay:.34s}
+  @keyframes chart-grow-x{from{transform:scaleX(.02)}to{transform:scaleX(1)}}
+  @keyframes chart-grow-y{from{transform:scaleY(.02)}to{transform:scaleY(1)}}
+  @keyframes chart-fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+}
+@media(prefers-reduced-motion:reduce){
+  .hbar-fill,.col-bar,.range-span,.range-dot{animation:none!important}
+}
+/* 窄屏：标签换行、刻度隐藏，避免横向溢出 */
+@media(max-width:640px){
+  .hbar,.range-row{grid-template-columns:minmax(0,1fr) 54px;gap:8px}
+  .hbar-label,.range-row>span:first-child{grid-column:1/-1}
+  .chart-axis{display:none}
+  .chart{--label-w:auto}
+  .columns{gap:12px}
+  .scale-charts,.labor-chart-host,.industry-ledger-host,.frontier-charts{margin-left:0;margin-right:0}
+}
