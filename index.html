@@ -92,6 +92,7 @@
           <button type="button" class="gate-switch" data-gate="energy" aria-pressed="false"><span>05 / 资源约束</span><b>算力与能源效率</b><small>判断单位资源是否创造更多有效价值</small><i aria-hidden="true"></i></button>
         </div>
         <div class="gate-reactor"><div class="reactor-grid" aria-hidden="true"></div><div class="reactor-ring" id="reactor-ring" style="--gate-progress:60%"><div class="reactor-core"><span>AI × SYSTEM</span><strong id="gate-count">3 / 5</strong><small>条件已具备</small></div></div><div class="reactor-pulse" aria-hidden="true"></div><span class="reactor-label label-a">INPUT</span><span class="reactor-label label-b">PROCESS</span><span class="reactor-label label-c">OUTCOME</span></div>
+        <div class="gate-dial-host" data-chart="gate-dial"></div>
         <div class="gate-verdict" aria-live="polite"><span class="eyebrow">SYSTEM DIAGNOSIS</span><h3 id="gate-status">能力已接入，<br>转化尚未完成</h3><p id="gate-explanation">数据、技能与流程已连接，但质量治理和资源效率还未纳入。此时可能出现速度提升，却无法确认结果是否可靠、可持续。</p><div class="gate-divider"></div><small id="gate-next">下一道门：可靠性与责任</small><a href="#lab">用情景实验检验时间成本 <span>↗</span></a></div>
       </div>
       <p class="transmission-note">解释规则：五项条件是分析框架，开关不代表真实企业的达标情况，也不会生成虚构的“生产力得分”。</p>
@@ -228,6 +229,7 @@
           <div class="lab-output"><div class="output-caption">ESTIMATED CAPACITY / MONTH</div><div class="output-number"><strong id="hours-result">27.6</strong><span>小时</span></div><div class="output-meter"><i id="result-meter"></i></div><p id="result-note">在当前假设下，AI 辅助释放部分时间；质量仍需人工验证。</p><div class="output-stats"><span>月基准工时<b id="base-hours">264 h</b></span><span>覆盖任务<b id="covered-tasks">484 项</b></span></div><div class="capacity-breakdown" role="img" aria-label="覆盖任务的节时收益、人工复核和返工成本组成"><span class="breakdown-label">覆盖任务时间拆解</span><div class="breakdown-track"><i id="saving-segment" class="saving-segment"></i><i id="review-segment" class="review-segment"></i><i id="rework-segment" class="rework-segment"></i></div><div class="breakdown-legend"><span><i class="saving-key"></i>节时 <b id="saving-hours">43.6 h</b></span><span><i class="review-key"></i>复核 <b id="review-hours">11.6 h</b></span><span><i class="rework-key"></i>返工 <b id="rework-hours">4.4 h</b></span></div></div><div class="simulation-stamp">SIMULATED · USER ASSUMPTIONS</div></div>
         </div>
       </div>
+      <div class="lab-waterfall-host" data-chart="lab-waterfall"></div>
       <p class="lab-disclaimer"><span>ⓘ</span> 这是透明的算术情景，返工概率与单次返工耗时由假设决定；尚未纳入行业差异、能源成本和结果质量。时间释放不自动等于有效产出提升。</p>
     </section>
 

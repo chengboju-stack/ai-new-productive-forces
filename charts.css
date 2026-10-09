@@ -124,6 +124,84 @@
 .chart-note b{color:var(--c-title);font-weight:600}
 .chart-src{margin-top:7px;font:10.5px var(--mono);color:var(--c-src)}
 
+/* ── 实时图表宿主 ── */
+.lab-waterfall-host{max-width:var(--max,1360px);margin:clamp(20px,3vw,32px) auto 0;
+  padding:clamp(16px,2.4vw,26px) clamp(16px,3vw,30px);border:1px solid #23414f;border-radius:10px;
+  background:linear-gradient(160deg,#0e2130a6,#0a1723a6)}
+.lab-waterfall-host .chart{margin-top:0}
+.gate-dial-host{margin-top:22px}
+
+/* ── 瀑布图：节时 − 复核 − 返工 = 净释放（随滑块实时重算） ── */
+.wf-grid{display:grid;grid-template-columns:46px minmax(0,1fr);gap:12px;height:250px;margin-top:6px}
+.wf-axis{display:flex;flex-direction:column;justify-content:space-between;font:10px var(--mono);color:var(--c-axis);text-align:right;padding-bottom:40px}
+.wf-cols{display:flex;align-items:stretch;gap:clamp(8px,4%,34px);position:relative;padding-bottom:40px}
+.wf-cols:after{content:'';position:absolute;left:0;right:0;bottom:40px;height:1px;background:var(--c-border)}
+.wf-col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative;min-width:0}
+.wf-val{font:600 13px var(--mono);color:var(--c-value);margin-bottom:6px;white-space:nowrap;position:relative;z-index:2}
+.wf-val small{font-size:9.5px;color:var(--c-sub);margin-left:1px}
+.wf-area{position:relative;flex:1;width:100%;min-height:0}
+.wf-bar{position:absolute;left:11%;right:11%;border-radius:2px;transform-origin:bottom center}
+.wf-bar.up{background:linear-gradient(180deg,#5fe3b6,#2f8f8a);box-shadow:0 0 20px -8px #62f0c180}
+.wf-bar.down{background:repeating-linear-gradient(45deg,#ff8fb3cc,#ff8fb3cc 5px,#ff8fb355 5px,#ff8fb355 10px)}
+.wf-bar.net{background:linear-gradient(180deg,#7fd8ff,#2f6fb8);box-shadow:0 0 26px -6px #7fd8ff99}
+.wf-link{position:absolute;left:11%;right:11%;height:1px;background:var(--c-axis);opacity:.5}
+.wf-cap{position:absolute;bottom:0;width:100%;font-size:11.5px;color:var(--c-label);text-align:center;line-height:1.4}
+.wf-cap small{display:block;font-size:10px;color:var(--c-sub)}
+@media(prefers-reduced-motion:no-preference){
+  .chart.will-animate .wf-bar{animation:wf-grow .7s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i) * .13s)}
+  .chart.will-animate .wf-link{animation:chart-fade .45s ease both;animation-delay:calc(var(--i) * .13s + .28s)}
+  .chart.will-animate .wf-col{animation:chart-fade .45s ease both;animation-delay:calc(var(--i) * .13s)}
+  @keyframes wf-grow{from{transform:scaleY(.02);opacity:.35}to{transform:scaleY(1);opacity:1}}
+}
+@media(max-width:640px){
+  .wf-grid{grid-template-columns:30px minmax(0,1fr);height:206px}
+  .wf-cap small{display:none}
+}
+
+/* ── 五项条件环形仪表（随开关实时点亮） ── */
+.dial-wrap{display:flex;align-items:center;gap:clamp(14px,4vw,40px);flex-wrap:wrap}
+.dial{width:200px;height:200px;flex:none;overflow:visible}
+.dial-bg,.dial-arc{fill:none;stroke-width:13;stroke-linecap:round}
+.dial-bg{stroke:var(--c-track)}
+.dial-arc{stroke:var(--c-track);transition:stroke .35s ease,filter .35s ease}
+.dial-arc.on{stroke:#2bb894;filter:drop-shadow(0 0 6px #2bb89499)}
+.dial-num{fill:var(--c-value);font:700 38px var(--mono);font-variant-numeric:tabular-nums}
+.dial-num tspan{font-size:18px;fill:var(--c-sub);font-weight:500}
+.dial-cap{fill:var(--c-sub);font:10px var(--mono);letter-spacing:1.4px}
+.dial-legend{list-style:none;margin:0;padding:0;display:grid;gap:9px;font-size:12.5px;color:var(--c-label)}
+.dial-legend li{display:flex;align-items:center;gap:9px}
+.dial-legend li i{width:9px;height:9px;border-radius:2px;background:#2b4a58;flex:none;transition:background .3s,box-shadow .3s}
+.dial-legend li.on{color:var(--c-value)}
+.dial-legend li.on i{background:#2bb894;box-shadow:0 0 9px #2bb89499}
+@media(prefers-reduced-motion:no-preference){
+  .dial.will-animate .dial-arc{animation:dial-in .55s ease both;animation-delay:calc(var(--i) * .1s)}
+  @keyframes dial-in{from{opacity:0}to{opacity:1}}
+}
+@media(max-width:640px){
+  .dial{width:160px;height:160px}
+  .dial-num{font-size:31px}
+}
+
+/* ── 微光扫过：让静态图形也有轻微呼吸，不密集闪烁 ── */
+@media(prefers-reduced-motion:no-preference){
+  .hbar-fill,.col-bar,.wf-bar.net,.dial-arc.on{position:relative;overflow:hidden}
+  .hbar-fill:after,.col-bar:after,.wf-bar.net:after{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(100deg,transparent 30%,#ffffff2e 50%,transparent 70%);
+    transform:translateX(-100%);
+    animation:shimmer 5.5s ease-in-out infinite;
+  }
+  .hbar:nth-child(2) .hbar-fill:after{animation-delay:.5s}
+  .hbar:nth-child(3) .hbar-fill:after{animation-delay:1s}
+  .rows .row:nth-child(2) .row-badge{animation-delay:.6s}
+  @keyframes shimmer{0%,62%{transform:translateX(-100%)}78%,100%{transform:translateX(100%)}}
+  .dial-arc.on{animation:dial-breathe 4.5s ease-in-out infinite}
+  @keyframes dial-breathe{0%,100%{filter:drop-shadow(0 0 5px #2bb89488)}50%{filter:drop-shadow(0 0 13px #2bb894cc)}}
+  /* 章节进入时：图形块轻微上浮，节奏与既有路由动画一致 */
+  [data-chapter].route-active .chart{animation:chart-enter .6s cubic-bezier(.2,.75,.2,1) both;animation-delay:.1s}
+  @keyframes chart-enter{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+}
+
 /* ── 出现动画（受 reduced-motion 保护） ── */
 @media(prefers-reduced-motion:no-preference){
   .chart.will-animate .hbar-fill{animation:chart-grow-x .85s cubic-bezier(.2,.8,.2,1) both}

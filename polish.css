@@ -141,13 +141,19 @@ footer.footer p{font-size:12.5px;color:#93a4b0}
 .route-group{color:#8fe3c6;letter-spacing:1.4px}
 .route-page-title{color:#cfe0e6;font-weight:600;position:relative;padding-left:14px}
 .route-page-title:before{content:'';position:absolute;left:0;top:50%;width:6px;height:6px;margin-top:-3px;border-radius:50%;background:var(--mint);box-shadow:0 0 10px var(--mint)}
-/* 章节大标题：渐变字 + 更大字重层次 */
-.section-heading h2,.scales h2,.evidence h2,.industry h2,.energy h2,.lab h2,.closing h2{
+/* 章节大标题：渐变字。深色章节用亮色渐变，浅色章节必须用深色渐变，
+   否则白字落在浅色底上会看不见（scales / energy / conclusion 均为浅色底）。 */
+.section-heading h2,.evidence h2,.industry h2,.lab h2{
   letter-spacing:-.03em;
   background:linear-gradient(96deg,#ffffff 8%,#d9fff1 46%,#8ef0d0 78%,#7fd8ff);
   -webkit-background-clip:text;background-clip:text;color:transparent;
 }
-.hero h1,.closing h2{
+.scales h2,.energy h2,.closing h2,#conclusion h2{
+  letter-spacing:-.03em;
+  background:linear-gradient(96deg,#0c2430 6%,#14454b 42%,#13786b 74%,#1d6fa8);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero h1{
   background:linear-gradient(96deg,#ffffff 6%,#d6fff0 44%,#8ef0d0 76%,#a9a4ff);
   -webkit-background-clip:text;background-clip:text;color:transparent;
 }

@@ -265,6 +265,146 @@
     }
   }
 
+  /* ======================================================================
+     实时图表：数值直接读取页面既有元素，随用户操作重绘（不是静态图）
+     ====================================================================== */
+  const num = el => {
+    const t = el && el.textContent ? el.textContent.replace(/[^\d.\-]/g, '') : '';
+    const v = parseFloat(t);
+    return Number.isFinite(v) ? v : 0;
+  };
+
+  /* ── 月工时拆解瀑布：节时 − 复核 − 返工 = 净释放 ── */
+  function waterfallHTML(v) {
+    const saving = v.saving, review = v.review, rework = v.rework, net = v.net;
+    const peak = Math.max(saving, net, 1);
+    const scale = 100 / (peak * 1.12);          // 纵向百分比
+    const cols = [
+      { label: '节时', sub: 'AI 辅助节省', val: saving, from: 0, to: saving, kind: 'up' },
+      { label: '复核', sub: '人工复核负担', val: review, from: saving, to: saving - review, kind: 'down' },
+      { label: '返工', sub: '返工概率 × 半程', val: rework, from: saving - review, to: saving - review - rework, kind: 'down' },
+      { label: '净释放', sub: '每月可用工时', val: net, from: 0, to: net, kind: 'net' },
+    ];
+    const bars = cols.map((c, i) => {
+      const lo = Math.min(c.from, c.to), hi = Math.max(c.from, c.to);
+      const bottom = lo * scale, height = Math.max((hi - lo) * scale, 0.6);
+      const label = c.kind === 'down' ? '−' + c.val.toFixed(1) : c.val.toFixed(1);
+      return `<div class="wf-col" style="--i:${i}">
+        <span class="wf-val">${label}<small>h</small></span>
+        <div class="wf-area"><div class="wf-bar ${c.kind}" style="bottom:${bottom.toFixed(2)}%;height:${height.toFixed(2)}%"></div>
+          ${i > 0 && c.kind !== 'net' ? `<span class="wf-link" style="bottom:${(c.from * scale).toFixed(2)}%"></span>` : ''}
+        </div>
+        <span class="wf-cap">${c.label}<small>${c.sub}</small></span>
+      </div>`;
+    }).join('');
+    return `<div class="chart wf">
+      <div class="chart-head"><span class="chart-title">每月工时从哪里来、到哪里去</span><span class="chart-unit">小时 / 月</span></div>
+      <div class="wf-grid">
+        <div class="wf-axis"><span>${peak.toFixed(0)}</span><span>${(peak / 2).toFixed(0)}</span><span>0</span></div>
+        <div class="wf-cols">${bars}</div>
+      </div>
+      <p class="chart-note">节时减去<b>复核</b>与<b>返工</b>才是净释放。返工越多，净释放掉得越快——这正是它对这个参数敏感的原因。</p>
+      <div class="chart-src">按页面当前滑块参数实时计算 · 情景模拟，不是预测</div>
+    </div>`;
+  }
+  function mountWaterfall() {
+    const host = document.querySelector('[data-chart="lab-waterfall"]');
+    if (!host) return;
+    const read = () => ({
+      saving: num(document.querySelector('#saving-hours')),
+      review: num(document.querySelector('#review-hours')),
+      rework: num(document.querySelector('#rework-hours')),
+      net: num(document.querySelector('#hours-result')),
+    });
+    const draw = () => {
+      const v = read();
+      const key = [v.saving, v.review, v.rework, v.net].join('|');
+      if (host.dataset.key === key) return;
+      host.dataset.key = key;
+      host.innerHTML = waterfallHTML(v);
+      const chart = host.querySelector('.chart');
+      void chart.offsetWidth;
+      chart.classList.add('will-animate');
+    };
+    if (!host.dataset.bound) {
+      host.dataset.bound = '1';
+      document.querySelectorAll('#lab input[type=range], #reset-lab').forEach(el => {
+        el.addEventListener('input', () => setTimeout(draw, 20));
+        el.addEventListener('click', () => setTimeout(draw, 20));
+      });
+    }
+    draw();
+  }
+
+  /* ── 五项转化条件的 SVG 环形仪表 ── */
+  const GATE_LABELS = { data: '数据', skills: '技能', workflow: '流程', trust: '质量治理', energy: '能源效率' };
+  function dialHTML(n, total) {
+    const R = 92, C = 2 * Math.PI * R, seg = C / total;
+    const arcs = Array.from({ length: total }, (_, i) => {
+      const on = i < n;
+      return `<circle class="dial-arc${on ? ' on' : ''}" cx="110" cy="110" r="${R}"
+        stroke-dasharray="${(seg - 8).toFixed(2)} ${(C - seg + 8).toFixed(2)}"
+        stroke-dashoffset="${(-i * seg + C / 4).toFixed(2)}" style="--i:${i}"></circle>`;
+    }).join('');
+    const dots = Object.entries(GATE_LABELS).map(([k, label], i) =>
+      `<li data-gate="${k}" ${i < n ? 'class="on"' : ''}><i></i>${label}</li>`).join('');
+    return `<div class="chart dial-chart">
+      <div class="chart-head"><span class="chart-title">五项条件的就位情况</span><span class="chart-unit">解释性模型</span></div>
+      <div class="dial-wrap">
+        <svg viewBox="0 0 220 220" class="dial" role="img" aria-label="五项转化条件中已就位 ${n} 项">
+          <circle class="dial-bg" cx="110" cy="110" r="${R}"></circle>
+          ${arcs}
+          <text class="dial-num" x="110" y="104" text-anchor="middle">${n}<tspan>/ ${total}</tspan></text>
+          <text class="dial-cap" x="110" y="128" text-anchor="middle">条件已就位</text>
+        </svg>
+        <ul class="dial-legend">${dots}</ul>
+      </div>
+      <p class="chart-note">每段弧对应一项条件：<b>数据、技能、流程、质量治理、能源效率</b>。缺任何一项，转化都会断在那一环。</p>
+      <div class="chart-src">这是解释性模型，开关数量不代表企业已获得等比例增长</div>
+    </div>`;
+  }
+  function mountDial() {
+    const host = document.querySelector('[data-chart="gate-dial"]');
+    if (!host) return;
+    const total = 5;
+    const read = () => document.querySelectorAll('#transmission .gate-switch.active').length;
+    const draw = (force) => {
+      const n = read();
+      if (!force && host.dataset.n === String(n)) return;
+      host.dataset.n = String(n);
+      host.innerHTML = dialHTML(n, total);
+      const svg = host.querySelector('.dial');
+      void svg.offsetWidth;
+      svg.classList.add('will-animate');
+    };
+    // 旋转动画：让当前就位/缺失状态一眼看出变化
+    if (!host.dataset.bound) {
+      host.dataset.bound = '1';
+      document.querySelectorAll('#transmission .gate-switch').forEach(b => {
+        b.addEventListener('click', () => setTimeout(() => draw(false), 30));
+      });
+    }
+    draw(true);
+  }
+
+  /* ── 图表进入视野时播放动画（滚动到图表也能触发，不再只在切标签时播） ── */
+  let io = null;
+  function initObserver() {
+    if (io || !('IntersectionObserver' in window)) return;
+    io = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (!en.isIntersecting) return;
+        const chart = en.target.querySelector('.chart');
+        if (chart) {
+          chart.classList.remove('will-animate');
+          void chart.offsetWidth;
+          chart.classList.add('will-animate');
+        }
+      });
+    }, { threshold: 0.25 });
+    document.querySelectorAll('[data-chart]').forEach(h => io.observe(h));
+  }
+
   /* ────────── 挂载 / 重播动画 ────────── */
   function mount(id) {
     const spec = SPECS[id];
@@ -282,7 +422,13 @@
       chart.classList.add('will-animate');
     });
   }
-  function mountAll() { syncGroups(); Object.keys(SPECS).forEach(mount); }
+  function mountAll() {
+    syncGroups();
+    Object.keys(SPECS).forEach(mount);
+    mountWaterfall();
+    mountDial();
+    initObserver();
+  }
   // 标签切换后：切换显隐并重播对应图表动画
   document.addEventListener('click', e => {
     const t = e.target.closest && e.target.closest('.scale-tab, .frontier-tab, .case-tab, .labor-mode');
